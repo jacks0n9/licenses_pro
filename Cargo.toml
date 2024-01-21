@@ -1,0 +1,8 @@
+[package]
+name = "licenses_pro"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rand = "0.8.5"
+ring = "0.17.7"
