@@ -39,7 +39,7 @@ pub mod check {
     }
 
     pub fn verify_license(license: License, info: LicenseCheckInfo) -> LicenseVerifyResult {
-        if let Err(_) = license.verify_checksum() {
+        if license.verify_checksum().is_err() {
             return LicenseVerifyResult::ChecksumFailed;
         }
         let chunk_size = match license.payload.get(info.iv_index) {
@@ -56,14 +56,18 @@ pub mod check {
         }
     }
     impl License {
-        pub fn verify_checksum(&self) -> Result<(), ()> {
+        pub fn verify_checksum(&self) -> Result<(), ChecksumVerifyError> {
             let checksum = generate_checksum(&self.seed, &self.payload);
             if checksum == self.checksum {
                 Ok(())
             } else {
-                Err(())
+                Err(ChecksumVerifyError::ChecksumDoesntMatch)
             }
         }
+    }
+    #[derive(Debug)]
+    pub enum ChecksumVerifyError{
+        ChecksumDoesntMatch
     }
     #[derive(Debug)]
     #[derive(PartialEq)]
@@ -151,14 +155,14 @@ impl Default for LicenseStructParameters {
         }
     }
 }
-fn generate_checksum(seed: &[u8], payload: &Vec<Vec<u8>>) -> Vec<u8> {
+fn generate_checksum(seed: &[u8], payload: &[Vec<u8>]) -> Vec<u8> {
     let mut context = digest::Context::new(&digest::SHA256);
-    let to_verify = &vec![seed, &payload.concat()].concat();
-    context.update(&to_verify);
+    let to_verify = &[seed, &payload.concat()].concat();
+    context.update(to_verify);
     context.finish().as_ref()[..CHECKSUM_LEN].to_owned()
 }
 use ring::digest::{self, Context, SHA256};
-fn generate_key_chunk<'a>(iv: &'a [u8], seed: &Vec<u8>, chunk_size: usize) -> Vec<u8> {
+fn generate_key_chunk(iv: &[u8], seed: &Vec<u8>, chunk_size: usize) -> Vec<u8> {
     let mut context = Context::new(&SHA256);
     context.update(&[iv, &seed].concat());
     let binding = context.finish();
@@ -178,7 +182,7 @@ pub mod gen {
             let mut chunks = vec![];
             for _ in 0..parameters.payload_length {
                 let mut chunk = Vec::with_capacity(parameters.chunk_size);
-                let mut rng = OsRng::default();
+                let mut rng = OsRng;
                 rng.fill_bytes(&mut chunk);
                 chunks.push(chunk);
             }
@@ -187,13 +191,13 @@ pub mod gen {
                 ivs: chunks,
             }
         }
-        pub fn generate_license<'a>(&'a self, seed: Vec<u8>) -> Result<License, LicenseGenError> {
+        pub fn generate_license(&self, seed: Vec<u8>) -> Result<License, LicenseGenError> {
             if seed.len() != self.parameters.seed_length {
                 return Err(LicenseGenError::InvalidSeedLen);
             }
             let mut payload = vec![];
             for iv in &self.ivs {
-                payload.push(generate_key_chunk(&iv, &seed, self.parameters.chunk_size));
+                payload.push(generate_key_chunk(iv, &seed, self.parameters.chunk_size));
             }
             let checksum = generate_checksum(&seed, &payload);
             Ok(License {
