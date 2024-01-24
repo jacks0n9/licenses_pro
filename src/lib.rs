@@ -162,13 +162,17 @@ pub mod blockers {
             }
         }
     }
+    #[cfg(feature="reqwest")]
     /// Fetch a remote page with a blocked base64-encoded seed on each line.
     /// This is nice because you don't actually have to host a server that validates licenses, you can just host this on pastebin or something.
     pub struct RemoteFileBlocker {
         pub url: reqwest::Url,
     }
+    #[cfg(feature="reqwest")]
 
     use base64::{engine::general_purpose::STANDARD_NO_PAD as base64engine, Engine};
+    #[cfg(feature="reqwest")]
+
     impl Blocker for RemoteFileBlocker {
         fn check_block(&self, seed: &[u8]) -> Result<(), BlockCheckError> {
             match reqwest::blocking::get(self.url.clone()) {

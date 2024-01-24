@@ -4,11 +4,13 @@ description="A crate for pro-level licenses."
 authors=["starryuwu"]
 license="MIT OR Apache-2.0"
 repository="https://github.com/jacks0n9/licenses_pro.git"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2021"
 readme="README.md"
 [dependencies]
 base64 = "0.21.7"
 rand = "0.8.5"
-reqwest = {version="0.11.23",features=["blocking"]}
+reqwest = {version="0.11.23",features=["blocking"],optional=true}
 ring = "0.17.7"
+[features]
+reqwest=["dep:reqwest"]
