@@ -263,7 +263,7 @@ pub mod gen {
             for _ in 0..parameters.payload_length {
                 let mut rng = OsRng;
                 // Arbitrary range
-                let rng_len = rng.gen_range(1..10);
+                let rng_len = rng.gen_range(10..16);
                 let mut iv = vec![];
                 for _ in 0..rng_len {
                     let mut single = [0u8; 1];
