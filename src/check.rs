@@ -32,7 +32,7 @@ pub fn verify_license<T: crate::blockers::Blocker>(
         return Err(LicenseVerifyError::ChecksumFailed);
     }
     let chunk_size = match license.payload.get(info.iv_index) {
-        None => return Err(LicenseVerifyError::InvalidIVIndex),
+        None => return Err(LicenseVerifyError::IVIndexOutOfRange),
         Some(t) => t,
     }
     .len();
@@ -106,8 +106,8 @@ pub enum HumanReadableParseError {
 pub struct WrongChecksum;
 #[derive(Debug, PartialEq, Error)]
 pub enum LicenseVerifyError {
-    #[error("internal error: invalid iv inded")]
-    InvalidIVIndex,
+    #[error("license does not have required amount of parts")]
+    IVIndexOutOfRange,
     #[error("checksum on license is invalid")]
     ChecksumFailed,
     #[error("license is forged")]
