@@ -66,9 +66,8 @@ impl License {
         if license_bytes.len() != should_len {
             return Err(LicenseParseError::InvalidLength);
         }
-        let og_payload = license_bytes
-            [params.seed_length..params.seed_length + payload_len_in_bytes]
-            .to_vec();
+        let og_payload =
+            license_bytes[params.seed_length..params.seed_length + payload_len_in_bytes].to_vec();
         let mut chunks = Vec::new();
         let mut i = 0;
         while i < og_payload.len() {
